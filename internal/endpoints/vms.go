@@ -23,6 +23,7 @@ func (V *VMSEndpoint) Register(engine *gin.Engine, config internal.Config) {
 	V.config = config
 	engine.GET("/vms", V.getVMS)
 	engine.GET("/vms/:vm/tags", V.getVMTags)
+	engine.GET("/vms/:vm/fqdn", V.getFQDN)
 }
 
 // getVMS exposes all vms of the vCenter at /vms
@@ -63,6 +64,27 @@ func (V *VMSEndpoint) getVMTags(context *gin.Context) {
 					"count": len(tags),
 					"tags":  tags,
 				},
+			})
+		}
+	}
+}
+
+func (V *VMSEndpoint) getFQDN(context *gin.Context) {
+	if r, ok := HandleRequest(context); ok {
+		var vm VMBinding
+		if err := context.ShouldBindUri(&vm); err != nil {
+			context.AbortWithStatusJSON(400, gin.H{
+				"error": fmt.Sprintf("Missing VM id in path: %s", err),
+			})
+			return
+		}
+		if fqdn, err := api.GetFQDN(V.config, r.Username, r.Password, vm.ID); err != nil {
+			context.AbortWithStatusJSON(500, gin.H{
+				"error": fmt.Sprintf("Error getting tags: %s", err),
+			})
+		} else {
+			context.JSON(200, gin.H{
+				"fqdn": fqdn,
 			})
 		}
 	}

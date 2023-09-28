@@ -156,3 +156,41 @@ func GetVMTags(c internal.Config, username string, password string, VMID string)
 		}
 	}
 }
+
+type GuestNetworkingResponseDNSValues struct {
+	DomainName string `json:"domain_name"`
+	HostName   string `json:"host_name"`
+}
+
+type GuestNetworkingResponse struct {
+	DNSValues GuestNetworkingResponseDNSValues `json:"dns_values"`
+}
+
+// GetFQDN uses the VMware guest tools to get the fqdn of a VM (if possible)
+func GetFQDN(c internal.Config, username string, password string, VMID string) (string, error) {
+	if s, err := GetSession(c, username, password); err != nil {
+		return "", err
+	} else {
+		logrus.Debugf("Trying to figure out the fqdn for vm %s from %s for %s", VMID, c.Resty.BaseURL, username)
+
+		var guestNetworkingResponse GuestNetworkingResponse
+		if r, err := c.Resty.
+			R().
+			SetHeader("vmware-api-session-id", s).
+			SetResult(&guestNetworkingResponse).
+			SetPathParam("vm", VMID).
+			Get("/api/vcenter/vm/{vm}/guest/networking"); err != nil {
+			logrus.Error(err)
+			return "", err
+		} else {
+			if r.IsError() {
+				return "", fmt.Errorf("can not get FQDN (%s): %s", r.Status(), r.Body())
+			}
+			return fmt.Sprintf(
+				"%s.%s",
+				guestNetworkingResponse.DNSValues.HostName,
+				guestNetworkingResponse.DNSValues.DomainName,
+			), nil
+		}
+	}
+}

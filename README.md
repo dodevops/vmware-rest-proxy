@@ -28,3 +28,9 @@ Return all VM names and their IDs
 ### GET
 
 Return all assigned tags and their categories for the specified vm `:vm`.
+
+## /vms/:vm/fqdn
+
+### GET
+
+Return the fqdn of the specified vm `:vm` from the VMware guest tools
