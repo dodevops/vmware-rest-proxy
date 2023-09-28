@@ -28,7 +28,7 @@ func (V *VMSEndpoint) Register(engine *gin.Engine, config internal.Config) {
 // getVMS exposes all vms of the vCenter at /vms
 func (V *VMSEndpoint) getVMS(context *gin.Context) {
 	if r, ok := HandleRequest(context); ok {
-		if vms, err := api.GetVMs(V.config.BaseUrl, r.Username, r.Password); err != nil {
+		if vms, err := api.GetVMs(V.config, r.Username, r.Password); err != nil {
 			context.AbortWithStatusJSON(500, gin.H{
 				"error": fmt.Sprintf("Error getting VMs: %s", err),
 			})
@@ -53,7 +53,7 @@ func (V *VMSEndpoint) getVMTags(context *gin.Context) {
 			})
 			return
 		}
-		if tags, err := api.GetVMTags(V.config.BaseUrl, r.Username, r.Password, vm.ID); err != nil {
+		if tags, err := api.GetVMTags(V.config, r.Username, r.Password, vm.ID); err != nil {
 			context.AbortWithStatusJSON(500, gin.H{
 				"error": fmt.Sprintf("Error getting tags: %s", err),
 			})

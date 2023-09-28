@@ -2,8 +2,8 @@ package api
 
 import (
 	"fmt"
-	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
+	"vmware-rest-proxy/internal"
 )
 
 // VMResponseValue is the value in response from the VM endpoint
@@ -18,17 +18,15 @@ type VMSResponse struct {
 }
 
 // GetVMs returns all VMs from the VM endpoint
-func GetVMs(url string, username string, password string) ([]VMResponseValue, error) {
-	if s, err := GetSession(url, username, password); err != nil {
+func GetVMs(c internal.Config, username string, password string) ([]VMResponseValue, error) {
+	if s, err := GetSession(c, username, password); err != nil {
 		return []VMResponseValue{}, err
 	} else {
-		logrus.Debugf("Fetching all VMs from %s for %s", url, username)
+		logrus.Debugf("Fetching all VMs from %s for %s", c.Resty.BaseURL, username)
 		var vmsResponse VMSResponse
-		if r, err := resty.
-			New().
-			SetBaseURL(url).
-			SetHeader("vmware-api-session-id", s).
+		if r, err := c.Resty.
 			R().
+			SetHeader("vmware-api-session-id", s).
 			SetResult(&vmsResponse).
 			Get("/rest/vcenter/vm"); err != nil {
 			logrus.Errorf("Error fetching VMs: %s", err)
@@ -88,18 +86,16 @@ type VMTag struct {
 }
 
 // GetVMTags retrieves a list of tags associated with the given vm
-func GetVMTags(url string, username string, password string, VMID string) ([]VMTag, error) {
+func GetVMTags(c internal.Config, username string, password string, VMID string) ([]VMTag, error) {
 	var tags []VMTag
-	if s, err := GetSession(url, username, password); err != nil {
+	if s, err := GetSession(c, username, password); err != nil {
 		return tags, err
 	} else {
-		logrus.Debugf("Loading the attached tags for vm %s from %s for %s", VMID, url, username)
+		logrus.Debugf("Loading the attached tags for vm %s from %s for %s", VMID, c.Resty.BaseURL, username)
 		var attachedTagsResponse AttachedTagsResponse
-		if r, err := resty.
-			New().
-			SetBaseURL(url).
-			SetHeader("vmware-api-session-id", s).
+		if r, err := c.Resty.
 			R().
+			SetHeader("vmware-api-session-id", s).
 			SetResult(&attachedTagsResponse).
 			SetBody(IDBody{ObjectID: VMIDBody{
 				Type: "VirtualMachine",
@@ -118,11 +114,9 @@ func GetVMTags(url string, username string, password string, VMID string) ([]VMT
 			for _, tagID := range attachedTagsResponse.Value {
 				logrus.Debugf("Loading tag information for tag id %s from vm %s", tagID, VMID)
 				var tagResponse TagResponse
-				if r, err := resty.
-					New().
-					SetBaseURL(url).
-					SetHeader("vmware-api-session-id", s).
+				if r, err := c.Resty.
 					R().
+					SetHeader("vmware-api-session-id", s).
 					SetResult(&tagResponse).
 					SetPathParam("tagID", tagID).
 					Get("/rest/com/vmware/cis/tagging/tag/id:{tagID}"); err != nil {
@@ -136,11 +130,9 @@ func GetVMTags(url string, username string, password string, VMID string) ([]VMT
 					}
 					logrus.Debugf("Loading category information for tag %s from vm %s", tagID, VMID)
 					var categoryResponse CategoryResponse
-					if r, err := resty.
-						New().
-						SetBaseURL(url).
-						SetHeader("vmware-api-session-id", s).
+					if r, err := c.Resty.
 						R().
+						SetHeader("vmware-api-session-id", s).
 						SetResult(&categoryResponse).
 						SetPathParam("categoryID", tagResponse.Value.CategoryID).
 						Get("/rest/com/vmware/cis/tagging/category/id:{categoryID}"); err != nil {

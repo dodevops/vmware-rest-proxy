@@ -1,7 +1,9 @@
 package main
 
 import (
+	"crypto/tls"
 	"github.com/gin-gonic/gin"
+	"github.com/go-resty/resty/v2"
 	"github.com/sirupsen/logrus"
 	"log"
 	"os"
@@ -10,7 +12,9 @@ import (
 )
 
 func main() {
-	c := internal.Config{}
+	c := internal.Config{
+		Resty: resty.New(),
+	}
 
 	if l, found := os.LookupEnv("LOG_LEVEL"); found {
 		if lv, err := logrus.ParseLevel(l); err != nil {
@@ -30,14 +34,17 @@ func main() {
 	if b, found := os.LookupEnv("BASE_URL"); !found {
 		log.Fatal("Please set BASE_URL to the base url of the vCenter you'd like to access.")
 	} else {
-		c.BaseUrl = b
+		c.Resty.SetBaseURL(b)
 	}
 
-	if a, found := os.LookupEnv("BIND_ADDRESS"); !found {
-		c.BindAddress = "0.0.0.0:8080"
-		logrus.Info("BIND_ADDRESS not specified, using 0.0.0.0:8080 as the bind address.")
-	} else {
-		c.BindAddress = a
+	bindAddress := "0.0.0.0:8080"
+
+	if a, found := os.LookupEnv("BIND_ADDRESS"); found {
+		bindAddress = a
+	}
+
+	if e, found := os.LookupEnv("TLS_INSECURE_SKIP_VERIFY"); found && e == "true" {
+		c.Resty.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 	}
 
 	logrus.Debug("Starting server")
@@ -52,5 +59,5 @@ func main() {
 	for _, endpoint := range e {
 		endpoint.Register(r, c)
 	}
-	_ = r.Run(c.BindAddress)
+	_ = r.Run(bindAddress)
 }
