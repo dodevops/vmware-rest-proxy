@@ -6,66 +6,46 @@ import (
 	"vmware-rest-proxy/internal"
 )
 
-// VMResponseValue is the value in response from the VM endpoint
-type VMResponseValue struct {
+// VMResponse is the value in response from the VM endpoint
+type VMResponse struct {
 	VM   string `json:"vm"`
 	Name string `json:"name"`
 }
 
-// VMSResponse holds a list of VMResponseValue as returned from the VM endpoint
-type VMSResponse struct {
-	Value []VMResponseValue `json:"value"`
-}
-
 // GetVMs returns all VMs from the VM endpoint
-func GetVMs(c internal.Config, username string, password string) ([]VMResponseValue, error) {
+func GetVMs(c internal.Config, username string, password string) ([]VMResponse, error) {
 	if s, err := GetSession(c, username, password); err != nil {
-		return []VMResponseValue{}, err
+		return []VMResponse{}, err
 	} else {
 		logrus.Debugf("Fetching all VMs from %s for %s", c.Resty.BaseURL, username)
-		var vmsResponse VMSResponse
+		var vmsResponse []VMResponse
 		if r, err := c.Resty.
 			R().
 			SetHeader("vmware-api-session-id", s).
 			SetResult(&vmsResponse).
-			Get("/rest/vcenter/vm"); err != nil {
+			Get("/api/vcenter/vm"); err != nil {
 			logrus.Errorf("Error fetching VMs: %s", err)
-			return []VMResponseValue{}, err
+			return []VMResponse{}, err
 		} else {
 			if r.IsError() {
 				err := fmt.Errorf("error getting vms (%s): %s", r.Status(), r.Body())
 				logrus.Error(err)
-				return []VMResponseValue{}, err
+				return []VMResponse{}, err
 			}
-			return vmsResponse.Value, nil
+			return vmsResponse, nil
 		}
 	}
 }
 
-// AttachedTagsResponse holds a response from the tags endpoint with the list of attached tag ids
-type AttachedTagsResponse struct {
-	Value []string `json:"value"`
-}
-
-// TagResponseValue Holds the value of TagResponse describing a tag from the tag endpoint
-type TagResponseValue struct {
+// TagResponse Holds the value of TagResponse describing a tag from the tag endpoint
+type TagResponse struct {
 	CategoryID string `json:"category_id"`
 	Name       string `json:"name"`
 }
 
-// TagResponse holds the response from the tag endpoint
-type TagResponse struct {
-	Value TagResponseValue `json:"value"`
-}
-
-// CategoryResponseValue holds the value of CategoryResponse describing a category from the category endpoint
-type CategoryResponseValue struct {
-	Name string `json:"name"`
-}
-
-// CategoryResponse holds the response of the category endpoint
+// CategoryResponse holds the value of CategoryResponse describing a category from the category endpoint
 type CategoryResponse struct {
-	Value CategoryResponseValue `json:"value"`
+	Name string `json:"name"`
 }
 
 // VMIDBody holds the object id from IDBody pointing to a vm
@@ -92,7 +72,7 @@ func GetVMTags(c internal.Config, username string, password string, VMID string)
 		return tags, err
 	} else {
 		logrus.Debugf("Loading the attached tags for vm %s from %s for %s", VMID, c.Resty.BaseURL, username)
-		var attachedTagsResponse AttachedTagsResponse
+		var attachedTagsResponse []string
 		if r, err := c.Resty.
 			R().
 			SetHeader("vmware-api-session-id", s).
@@ -101,8 +81,8 @@ func GetVMTags(c internal.Config, username string, password string, VMID string)
 				Type: "VirtualMachine",
 				ID:   VMID,
 			}}).
-			SetQueryParam("~action", "list-attached-tags").
-			Post("/rest/com/vmware/cis/tagging/tag-association"); err != nil {
+			SetQueryParam("action", "list-attached-tags").
+			Post("/api/cis/tagging/tag-association"); err != nil {
 			logrus.Error(err)
 			return tags, err
 		} else {
@@ -111,7 +91,7 @@ func GetVMTags(c internal.Config, username string, password string, VMID string)
 				logrus.Error(err)
 				return tags, err
 			}
-			for _, tagID := range attachedTagsResponse.Value {
+			for _, tagID := range attachedTagsResponse {
 				logrus.Debugf("Loading tag information for tag id %s from vm %s", tagID, VMID)
 				var tagResponse TagResponse
 				if r, err := c.Resty.
@@ -119,14 +99,17 @@ func GetVMTags(c internal.Config, username string, password string, VMID string)
 					SetHeader("vmware-api-session-id", s).
 					SetResult(&tagResponse).
 					SetPathParam("tagID", tagID).
-					Get("/rest/com/vmware/cis/tagging/tag/id:{tagID}"); err != nil {
+					Get("/api/cis/tagging/tag/{tagID}"); err != nil {
 					logrus.Error(err)
 					return tags, err
 				} else {
-					if r.IsError() {
-						err := fmt.Errorf("error getting tags (%s): %s", r.Status(), r.Body())
+					if r.IsError() && r.StatusCode() != 404 {
+						err := fmt.Errorf("error getting tag information for tag %s (%s): %s", tagID, r.Status(), r.Body())
 						logrus.Error(err)
 						return tags, err
+					} else if r.StatusCode() == 404 || tagResponse.CategoryID == "" {
+						logrus.Warn("Invalid tag %s. Either not found or has no category", tagID)
+						continue
 					}
 					logrus.Debugf("Loading category information for tag %s from vm %s", tagID, VMID)
 					var categoryResponse CategoryResponse
@@ -134,8 +117,8 @@ func GetVMTags(c internal.Config, username string, password string, VMID string)
 						R().
 						SetHeader("vmware-api-session-id", s).
 						SetResult(&categoryResponse).
-						SetPathParam("categoryID", tagResponse.Value.CategoryID).
-						Get("/rest/com/vmware/cis/tagging/category/id:{categoryID}"); err != nil {
+						SetPathParam("categoryID", tagResponse.CategoryID).
+						Get("/api/cis/tagging/category/{categoryID}"); err != nil {
 						logrus.Error(err)
 						return tags, err
 					} else {
@@ -146,8 +129,8 @@ func GetVMTags(c internal.Config, username string, password string, VMID string)
 						}
 
 						tags = append(tags, VMTag{
-							Value:    tagResponse.Value.Name,
-							Category: categoryResponse.Value.Name,
+							Value:    tagResponse.Name,
+							Category: categoryResponse.Name,
 						})
 					}
 				}
