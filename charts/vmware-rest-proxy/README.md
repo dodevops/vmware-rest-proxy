@@ -1,6 +1,6 @@
 # vmware-rest-proxy
 
-[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/vmware-rest-proxy)](https://artifacthub.io/packages/search?repo=vmware-rest-proxy) ![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.16.0](https://img.shields.io/badge/AppVersion-1.16.0-informational?style=flat-square)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/vmware-rest-proxy)](https://artifacthub.io/packages/search?repo=vmware-rest-proxy) ![Version: 0.1.3](https://img.shields.io/badge/Version-0.1.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.16.0](https://img.shields.io/badge/AppVersion-1.16.0-informational?style=flat-square)
 
 ## Introduction
 
@@ -18,6 +18,13 @@ to install this chart.
 ## Configuration
 
 Set config.baseUrl to the URL of your vCenter server. See other `config.`-parameters for more configuration.
+
+**Homepage:** <https://github.com/dodevops/vmware-rest-proxy>
+
+## Source Code
+
+* <https://github.com/dodevops/vmware-rest-proxy/tree/main/charts/vmware-rest-proxy>
+* <https://github.com/dodevops/vmware-rest-proxy/blob/main/Dockerfile>
 
 ## Values
 
