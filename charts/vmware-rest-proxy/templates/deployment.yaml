@@ -47,11 +47,11 @@ spec:
               port: http
           env:
             - name: BASE_URL
-              value: {{ .Values.config.baseUrl }}
+              value: "{{ .Values.config.baseUrl }}"
             - name: LOG_LEVEL
-              value: {{ .Values.config.logLevel }}
+              value: "{{ .Values.config.logLevel }}"
             - name: TLS_INSECURE_SKIP_VERIFY
-              value: {{ .Values.config.tlsSkipVerify }}
+              value: "{{ .Values.config.tlsSkipVerify }}"
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
