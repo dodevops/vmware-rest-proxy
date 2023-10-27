@@ -1,6 +1,11 @@
 apiVersion: v2
 name: vmware-rest-proxy
 description: A Helm chart for Kubernetes
+home: https://github.com/dodevops/vmware-rest-proxy
+sources:
+  - https://github.com/dodevops/vmware-rest-proxy/tree/main/charts/vmware-rest-proxy
+  - https://github.com/dodevops/vmware-rest-proxy/blob/main/Dockerfile
+
 
 # A chart can be either an 'application' or a 'library' chart.
 #
@@ -22,3 +27,8 @@ version: 0.1.2
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
 appVersion: "1.16.0"
+
+annotations:
+  artifacthub.io/links: |
+    - name: support
+      url: https://github.com/dodevops/vmware-rest-proxy/issues
