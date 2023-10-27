@@ -3,6 +3,16 @@ entries:
   vmware-rest-proxy:
   - apiVersion: v2
     appVersion: 1.16.0
+    created: "2023-10-27T09:41:19.773475689Z"
+    description: A Helm chart for Kubernetes
+    digest: e22dff79785fd8ee62eb138a165726fcb958671c390738ba29910cd808351f68
+    name: vmware-rest-proxy
+    type: application
+    urls:
+    - https://github.com/dodevops/vmware-rest-proxy/releases/download/vmware-rest-proxy-0.1.1/vmware-rest-proxy-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: 1.16.0
     created: "2023-09-28T06:54:07.20296047Z"
     description: A Helm chart for Kubernetes
     digest: 861b089c7cea262be0539d314620d2ede1f5c6d865212fa72e2c0b38ef1b7fd2
@@ -11,4 +21,4 @@ entries:
     urls:
     - https://github.com/dodevops/vmware-rest-proxy/releases/download/vmware-rest-proxy-0.1.0/vmware-rest-proxy-0.1.0.tgz
     version: 0.1.0
-generated: "2023-09-28T06:54:07.20296987Z"
+generated: "2023-10-27T09:41:19.773483289Z"
