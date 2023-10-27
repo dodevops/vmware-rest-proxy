@@ -82,6 +82,9 @@ tolerations: []
 affinity: {}
 
 config:
+  # config.baseUrl -- base URL of the vCenter server
   baseUrl: ""
+  # config.logLevel -- Maximum log level to use (see (https://pkg.go.dev/github.com/sirupsen/logrus#readme-level-logging)) [INFO]
   logLevel: "INFO"
+  # config.tlsSkipVerify -- If set, will disable TLS verification for the API client
   tlsSkipVerify: "false"

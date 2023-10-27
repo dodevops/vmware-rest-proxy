@@ -49,7 +49,7 @@ spec:
             - name: BASE_URL
               value: {{ .Values.config.baseUrl }}
             - name: LOG_LEVEL
-              value: {{ . Values.config.logLevel }}
+              value: {{ .Values.config.logLevel }}
             - name: TLS_INSECURE_SKIP_VERIFY
               value: {{ .Values.config.tlsSkipVerify }}
           resources:

@@ -1,0 +1,32 @@
+{{ template "chart.header" . }}
+{{ template "chart.deprecationWarning" . }}
+
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/vmware-rest-proxy)](https://artifacthub.io/packages/search?repo=vmware-rest-proxy) {{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+## Introduction
+
+This helm chart installs the [VMware REST Proxy](https://github.com/dodevops/vmware-rest-proxy) for easy access
+to commonly used vSphere information.
+
+## Installation
+
+Use
+
+    helm install <name of release> vmware-rest-proy --repo https://dodevops.io/vmware-rest-proxy
+
+to install this chart.
+
+## Configuration
+
+Set config.baseUrl to the URL of your vCenter server. See other `config.`-parameters for more configuration.
+
+{{ template "chart.homepageLine" . }}
+
+{{ template "chart.maintainersSection" . }}
+
+{{ template "chart.sourcesSection" . }}
+
+{{ template "chart.requirementsSection" . }}
+
+{{ template "chart.valuesSection" . }}
+
