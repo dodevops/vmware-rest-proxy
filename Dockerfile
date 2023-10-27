@@ -8,8 +8,12 @@ RUN go build -o /serve cmd/serve.go
 
 FROM alpine:latest
 
-COPY --from=build /serve /
+RUN adduser -u 1000 -D app app
+
+USER app
+
+COPY --from=build /serve /home/app/serve
 
 EXPOSE 8080
 
-ENTRYPOINT ["/serve"]
+ENTRYPOINT ["/home/app/serve"]
