@@ -55,7 +55,7 @@ func main() {
 	if err := r.SetTrustedProxies(nil); err != nil {
 		log.Fatalf("Error disabling trusted proxies: %s", err)
 	}
-	e := []endpoints.Endpoint{&endpoints.VMSEndpoint{}}
+	e := []endpoints.Endpoint{&endpoints.VMSEndpoint{}, &endpoints.StatusEndpoint{}}
 	for _, endpoint := range e {
 		endpoint.Register(r, c)
 	}
