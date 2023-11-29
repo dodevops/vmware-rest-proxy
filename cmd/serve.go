@@ -44,7 +44,13 @@ func main() {
 	}
 
 	if e, found := os.LookupEnv("TLS_INSECURE_SKIP_VERIFY"); found && e == "true" {
+		logrus.Warn("Disabling TLS verification")
 		c.Resty.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+	}
+
+	if p, found := os.LookupEnv("VCENTER_PROXY_URL"); found {
+		logrus.Debug("Setting proxy URL")
+		c.Resty.SetProxy(p)
 	}
 
 	logrus.Debug("Starting server")
