@@ -52,6 +52,8 @@ spec:
               value: "{{ .Values.config.logLevel }}"
             - name: TLS_INSECURE_SKIP_VERIFY
               value: "{{ .Values.config.tlsSkipVerify }}"
+            - name: VCENTER_PROXY_URL
+              value: "{{ .Values.config.proxyUrl }}"
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

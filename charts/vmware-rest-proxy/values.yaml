@@ -88,3 +88,5 @@ config:
   logLevel: "INFO"
   # config.tlsSkipVerify -- If set, will disable TLS verification for the API client
   tlsSkipVerify: "false"
+  # config.proxyUrl -- Connect to the vCenter using this proxy
+  proxyUrl: ""

@@ -14,6 +14,7 @@ The following environment variables are used for configuration:
 * BIND_ADDRESS: Bind address to bind the server to [0.0.0.0:8080]
 * LOG_LEVEL: Maximum log level to use (see (https://pkg.go.dev/github.com/sirupsen/logrus#readme-level-logging)) [INFO]
 * TLS_INSECURE_SKIP_VERIFY: If set, will disable TLS verification for the API client
+* VCENTER_PROXY_URL: Connect to the vCenter using this proxy
 
 # APIs
 
