@@ -48,7 +48,7 @@ func main() {
 		c.Resty.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 	}
 
-	if p, found := os.LookupEnv("VCENTER_PROXY_URL"); found {
+	if p, found := os.LookupEnv("VCENTER_PROXY_URL"); found && p != "" {
 		logrus.Debug("Setting proxy URL")
 		c.Resty.SetProxy(p)
 	}
