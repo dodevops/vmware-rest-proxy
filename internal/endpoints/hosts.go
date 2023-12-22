@@ -39,12 +39,12 @@ func (H HostsEndpoint) getHosts(context *gin.Context) {
 				"error": fmt.Sprintf("Error getting hosts: %s", err),
 			})
 		} else {
-			context.JSON(200, gin.H{
-				"hosts": Hosts{Hosts: HostsResult{
+			context.JSON(200, Hosts{
+				Hosts: HostsResult{
 					Count: len(hosts),
 					Hosts: hosts,
 				}},
-			})
+			)
 		}
 	}
 }
