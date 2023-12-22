@@ -2,9 +2,10 @@ name: Create and publish the Helm chart
 
 on:
   push:
+    branches:
+      - main
     paths:
       - "charts/**/*"
-      - ".github/**/*"
 
 jobs:
   build-and-push-chart:
