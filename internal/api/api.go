@@ -24,6 +24,9 @@ type VSphereProxyApi interface {
 
 	// GetDatastores retrieves a list of datastores from the vCenter
 	GetDatastores(username string, password string) ([]Datastore, error)
+
+	// GetVMInfo creates a statistical overview of the given vm
+	GetVMInfo(username string, password string, VMID string) (VMInfo, error)
 }
 
 // DefaultVSphereProxyApi is the default API implementation

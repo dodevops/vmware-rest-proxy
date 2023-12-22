@@ -158,7 +158,7 @@ func TestVMSEndpoint_GetFQDN(t *testing.T) {
 	b := builder.NewBuilder().
 		WithRule(test.SessionRule).
 		WithRule(
-			builder.NewRule("get-fqdm").
+			builder.NewRule("get-fqdn").
 				WithCondition(builder.HasPath("/api/vcenter/vm/1/guest/networking")).
 				WithCondition(builder.HasMethod("GET")).
 				WithCondition(builder.HasHeader("Vmware-Api-Session-Id", test.AUTHTOKEN)).
@@ -182,4 +182,45 @@ func TestVMSEndpoint_GetFQDN(t *testing.T) {
 	assert.Equal(t, i.AllWereCalled(), true)
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, r.FQDN, "test.example.com")
+}
+
+func TestVMSEndpoint_GetVMInfo(t *testing.T) {
+	b := builder.NewBuilder().
+		WithRule(test.SessionRule).
+		WithRule(
+			builder.NewRule("get-vm").
+				WithCondition(builder.HasPath("/api/vcenter/vm/1")).
+				WithCondition(builder.HasMethod("GET")).
+				WithCondition(builder.HasHeader("Vmware-Api-Session-Id", test.AUTHTOKEN)).
+				ReturnBody(`{"name":"test", "cpu": {"cores_per_socket": 2, "count": 2}, "memory": {"size_MiB": 200}}`).
+				ReturnHeader("Content-Type", "application/json").
+				Build(),
+		).
+		WithRule(
+			builder.NewRule("get-vm").
+				WithCondition(builder.HasPath("/api/vcenter/vm/1/guest/local-filesystem")).
+				WithCondition(builder.HasMethod("GET")).
+				WithCondition(builder.HasHeader("Vmware-Api-Session-Id", test.AUTHTOKEN)).
+				ReturnBody(`{"/": {"capacity": 100, "free_space": 0}, "/opt": {"capacity": 2000, "free_space": 20}}`).
+				ReturnHeader("Content-Type", "application/json").
+				Build(),
+		)
+
+	req, _ := http.NewRequest("GET", "/vms/1/info", nil)
+	req.SetBasicAuth("test", "test")
+	w := test.TestRequests(b.Build(), []*http.Request{req})
+
+	var r api.VMInfo
+	err := json.NewDecoder(w.Body).Decode(&r)
+	assert.Equal(t, err, nil)
+
+	i := inspector.NewInspector(b)
+	assert.Equal(t, i.Failed(), false)
+	assert.Equal(t, i.AllWereCalled(), true)
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, r.Name, "test")
+	assert.Equal(t, r.CPUCores, 4)
+	assert.Equal(t, r.ProvisionedRAM, 200)
+	assert.Equal(t, r.ProvisionedStorage, 100+2000)
+	assert.Equal(t, r.UsedStorage, 100+2000-20)
 }

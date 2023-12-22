@@ -31,3 +31,11 @@ type Datastore struct {
 	Capacity  int    `json:"capacity"`
 	FreeSpace int    `json:"free_space"`
 }
+
+type VMInfo struct {
+	Name               string `json:"name"`
+	CPUCores           int    `json:"cpu_cores"`
+	ProvisionedRAM     int    `json:"provisioned_ram"`
+	ProvisionedStorage int    `json:"provisioned_storage"`
+	UsedStorage        int    `json:"used_storage"`
+}
