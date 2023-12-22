@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/thoas/go-funk"
 )
 
 // GetVMs returns all VMs from the VM endpoint
@@ -142,6 +143,64 @@ func (d DefaultVSphereProxyApi) GetFQDN(username string, password string, VMID s
 				gR.DNSValues.HostName,
 				gR.DNSValues.DomainName,
 			), nil
+		}
+	}
+}
+
+func (d DefaultVSphereProxyApi) GetVMInfo(username string, password string, VMID string) (VMInfo, error) {
+	v := VMInfo{}
+	if s, err := d.GetSession(username, password); err != nil {
+		return v, err
+	} else {
+		logrus.Debugf("Getting basic information for vm %s from %s for %s", VMID, d.Resty.BaseURL, username)
+		var vR struct {
+			Name string `json:"name"`
+			CPU  struct {
+				CoresPerSocket int `json:"cores_per_socket"`
+				Count          int `json:"count"`
+			} `json:"cpu"`
+			Memory struct {
+				SizeMiB int `json:"size_MiB"`
+			} `json:"memory"`
+		}
+		if r, err := d.Resty.
+			R().
+			SetHeader("vmware-api-session-id", s).
+			SetResult(&vR).
+			SetPathParam("vm", VMID).
+			Get("/api/vcenter/vm/{vm}"); err != nil {
+			logrus.Error(err)
+			return v, err
+		} else {
+			if r.IsError() {
+				return v, fmt.Errorf("can not get vm information (%s): %s", r.Status(), r.Body())
+			}
+			v.Name = vR.Name
+			v.CPUCores = vR.CPU.CoresPerSocket * vR.CPU.Count
+			v.ProvisionedRAM = vR.Memory.SizeMiB
+
+			logrus.Debugf("Getting local filesystem information for vm %s from %s for %s", VMID, d.Resty.BaseURL, username)
+			type fs struct {
+				FreeSpace int `json:"free_space"`
+				Capacity  int `json:"capacity"`
+			}
+			var fR map[string]fs
+			if r, err := d.Resty.
+				R().
+				SetHeader("vmware-api-session-id", s).
+				SetResult(&fR).
+				SetPathParam("vm", VMID).
+				Get("/api/vcenter/vm/{vm}/guest/local-filesystem"); err != nil {
+				logrus.Error(err)
+				return v, err
+			} else {
+				if r.IsError() {
+					return v, fmt.Errorf("can not get info about local filesystems (%s): %s", r.Status(), r.Body())
+				}
+				v.ProvisionedStorage = funk.Reduce(funk.Values(fR), func(acc int, f fs) int { return acc + f.Capacity }, 0).(int)
+				v.UsedStorage = funk.Reduce(funk.Values(fR), func(acc int, f fs) int { return acc + f.Capacity - f.FreeSpace }, 0).(int)
+				return v, nil
+			}
 		}
 	}
 }
