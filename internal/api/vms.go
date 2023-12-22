@@ -6,42 +6,29 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// VMResponse is the value in response from the VM endpoint
-type VMResponse struct {
-	VM         string `json:"vm"`
-	Name       string `json:"name"`
-	PowerState string `json:"power_state"`
-}
-
 // GetVMs returns all VMs from the VM endpoint
-func (d DefaultVSphereProxyApi) GetVMs(username string, password string) ([]VMResponse, error) {
+func (d DefaultVSphereProxyApi) GetVMs(username string, password string) ([]VM, error) {
 	if s, err := d.GetSession(username, password); err != nil {
-		return []VMResponse{}, err
+		return []VM{}, err
 	} else {
 		logrus.Debugf("Fetching all VMs from %s for %s", d.Resty.BaseURL, username)
-		var vmsResponse []VMResponse
+		var vmsResponse []VM
 		if r, err := d.Resty.
 			R().
 			SetHeader("vmware-api-session-id", s).
 			SetResult(&vmsResponse).
 			Get("/api/vcenter/vm"); err != nil {
 			logrus.Errorf("Error fetching VMs: %s", err)
-			return []VMResponse{}, err
+			return []VM{}, err
 		} else {
 			if r.IsError() {
 				err := fmt.Errorf("error getting vms (%s): %s", r.Status(), r.Body())
 				logrus.Error(err)
-				return []VMResponse{}, err
+				return []VM{}, err
 			}
 			return vmsResponse, nil
 		}
 	}
-}
-
-// VMTag holds a tag from vSphere
-type VMTag struct {
-	Value    string `json:"value"`
-	Category string `json:"category"`
 }
 
 // GetVMTags retrieves a list of tags associated with the given vm
