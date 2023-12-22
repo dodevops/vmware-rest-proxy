@@ -16,7 +16,7 @@ func TestHostsEndpoint_GetHosts(t *testing.T) {
 	b := builder.NewBuilder().
 		WithRule(test.SessionRule).
 		WithRule(
-			builder.NewRule("vms").
+			builder.NewRule("hosts").
 				WithCondition(builder.HasPath("/api/vcenter/host")).
 				WithCondition(builder.HasMethod("GET")).
 				WithCondition(builder.HasHeader("Vmware-Api-Session-Id", test.AUTHTOKEN)).
