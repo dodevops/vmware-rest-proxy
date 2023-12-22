@@ -36,7 +36,7 @@ func TestRequests(handler http.Handler, requests []*http.Request) *httptest.Resp
 	r := resty.New().SetBaseURL(s.URL).SetBasicAuth("test", "test")
 	a := api.DefaultVSphereProxyApi{Resty: r}
 	g := gin.Default()
-	for _, endpoint := range []endpoints.Endpoint{&endpoints.VMSEndpoint{API: a}, &endpoints.HostsEndpoint{API: a}, &endpoints.StatusEndpoint{}} {
+	for _, endpoint := range []endpoints.Endpoint{&endpoints.VMSEndpoint{API: a}, &endpoints.HostsEndpoint{API: a}, &endpoints.StatusEndpoint{}, &endpoints.DataStoreEndpoint{API: a}} {
 		endpoint.Register(g)
 	}
 
