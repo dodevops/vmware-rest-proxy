@@ -7,14 +7,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"log"
 	"os"
-	"vmware-rest-proxy/internal"
+	api2 "vmware-rest-proxy/internal/api"
 	"vmware-rest-proxy/internal/endpoints"
 )
 
+// REST server that proxies request through to a vCenter web service making it easier to request certain details.
+
 func main() {
-	c := internal.Config{
-		Resty: resty.New(),
-	}
+	r := resty.New()
 
 	if l, found := os.LookupEnv("LOG_LEVEL"); found {
 		if lv, err := logrus.ParseLevel(l); err != nil {
@@ -34,7 +34,7 @@ func main() {
 	if b, found := os.LookupEnv("BASE_URL"); !found {
 		log.Fatal("Please set BASE_URL to the base url of the vCenter you'd like to access.")
 	} else {
-		c.Resty.SetBaseURL(b)
+		r.SetBaseURL(b)
 	}
 
 	bindAddress := "0.0.0.0:8080"
@@ -45,25 +45,25 @@ func main() {
 
 	if e, found := os.LookupEnv("TLS_INSECURE_SKIP_VERIFY"); found && e == "true" {
 		logrus.Warn("Disabling TLS verification")
-		c.Resty.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+		r.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 	}
 
 	if p, found := os.LookupEnv("VCENTER_PROXY_URL"); found && p != "" {
 		logrus.Debug("Setting proxy URL")
-		c.Resty.SetProxy(p)
+		r.SetProxy(p)
 	}
 
 	logrus.Debug("Starting server")
 
 	gin.SetMode(gin.ReleaseMode)
-	r := gin.Default()
+	s := gin.Default()
 	logrus.Debug("Disabling trusted proxies because it's recommended by gin")
-	if err := r.SetTrustedProxies(nil); err != nil {
+	if err := s.SetTrustedProxies(nil); err != nil {
 		log.Fatalf("Error disabling trusted proxies: %s", err)
 	}
-	e := []endpoints.Endpoint{&endpoints.VMSEndpoint{}, &endpoints.StatusEndpoint{}}
-	for _, endpoint := range e {
-		endpoint.Register(r, c)
+	api := api2.DefaultVSphereProxyApi{Resty: r}
+	for _, endpoint := range []endpoints.Endpoint{&endpoints.VMSEndpoint{API: api}, &endpoints.StatusEndpoint{}} {
+		endpoint.Register(s)
 	}
-	_ = r.Run(bindAddress)
+	_ = s.Run(bindAddress)
 }

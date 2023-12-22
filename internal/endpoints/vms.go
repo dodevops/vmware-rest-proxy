@@ -3,13 +3,12 @@ package endpoints
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"vmware-rest-proxy/internal"
 	"vmware-rest-proxy/internal/api"
 )
 
 // The VMSEndpoint returns information about VMs in vSphere
 type VMSEndpoint struct {
-	config internal.Config
+	API api.VSphereProxyApi
 }
 
 var _ Endpoint = &VMSEndpoint{}
@@ -19,17 +18,16 @@ type VMBinding struct {
 	ID string `uri:"vm" binding:"required"`
 }
 
-func (V *VMSEndpoint) Register(engine *gin.Engine, config internal.Config) {
-	V.config = config
+func (V *VMSEndpoint) Register(engine *gin.Engine) {
 	engine.GET("/vms", V.getVMS)
 	engine.GET("/vms/:vm/tags", V.getVMTags)
 	engine.GET("/vms/:vm/fqdn", V.getFQDN)
 }
 
-// getVMS exposes all vms of the vCenter at /vms
+// getVMS exposes all VMS of the vCenter at /VMS
 func (V *VMSEndpoint) getVMS(context *gin.Context) {
 	if r, ok := HandleRequest(context); ok {
-		if vms, err := api.GetVMs(V.config, r.Username, r.Password); err != nil {
+		if vms, err := V.API.GetVMs(r.Username, r.Password); err != nil {
 			context.AbortWithStatusJSON(500, gin.H{
 				"error": fmt.Sprintf("Error getting VMs: %s", err),
 			})
@@ -44,7 +42,7 @@ func (V *VMSEndpoint) getVMS(context *gin.Context) {
 	}
 }
 
-// getVMTags exposes a list of tags associated with a vm at /vms/:vm/tags
+// getVMTags exposes a list of tags associated with a vm at /VMS/:vm/tags
 func (V *VMSEndpoint) getVMTags(context *gin.Context) {
 	if r, ok := HandleRequest(context); ok {
 		var vm VMBinding
@@ -54,14 +52,14 @@ func (V *VMSEndpoint) getVMTags(context *gin.Context) {
 			})
 			return
 		}
-		if tags, err := api.GetVMTags(V.config, r.Username, r.Password, vm.ID); err != nil {
+		if tags, err := V.API.GetVMTags(r.Username, r.Password, vm.ID); err != nil {
 			context.AbortWithStatusJSON(500, gin.H{
 				"error": fmt.Sprintf("Error getting tags: %s", err),
 			})
 		} else {
 			context.JSON(200, gin.H{
 				"tags": gin.H{
-					"count": len(tags),
+					"Count": len(tags),
 					"tags":  tags,
 				},
 			})
@@ -78,7 +76,7 @@ func (V *VMSEndpoint) getFQDN(context *gin.Context) {
 			})
 			return
 		}
-		if fqdn, err := api.GetFQDN(V.config, r.Username, r.Password, vm.ID); err != nil {
+		if fqdn, err := V.API.GetFQDN(r.Username, r.Password, vm.ID); err != nil {
 			context.AbortWithStatusJSON(500, gin.H{
 				"error": fmt.Sprintf("Error getting tags: %s", err),
 			})

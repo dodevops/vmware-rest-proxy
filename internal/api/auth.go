@@ -3,24 +3,21 @@ package api
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"vmware-rest-proxy/internal"
 )
-
-type GetSessionResponse struct {
-	User string `json:"user"`
-}
 
 var sessionCache map[string]string
 
 // GetSession returns the vmware session id to be used by other requests
-func GetSession(c internal.Config, username string, password string) (string, error) {
+func (d DefaultVSphereProxyApi) GetSession(username string, password string) (string, error) {
 	if sessionCache == nil {
 		sessionCache = make(map[string]string)
 	}
 	if s, ok := sessionCache[username]; ok {
 		logrus.Debugf("Checking cached session for user %s", username)
-		var getSessionResponse GetSessionResponse
-		if r, err := c.Resty.
+		var getSessionResponse struct {
+			User string `json:"user"`
+		}
+		if r, err := d.Resty.
 			R().
 			SetHeader("vmware-api-session-id", s).
 			SetBasicAuth(username, password).
@@ -38,9 +35,9 @@ func GetSession(c internal.Config, username string, password string) (string, er
 			}
 		}
 	}
-	logrus.Debugf("Creating VMware session for user %s at %s", username, c.Resty.BaseURL)
+	logrus.Debugf("Creating VMware session for user %s at %s", username, d.Resty.BaseURL)
 	var sessionToken string
-	if r, err := c.Resty.
+	if r, err := d.Resty.
 		R().
 		SetBasicAuth(username, password).
 		SetResult(&sessionToken).
