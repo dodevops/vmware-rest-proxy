@@ -84,7 +84,7 @@ func TestVMSEndpoint_GetVMS(t *testing.T) {
 				WithCondition(builder.HasPath("/api/vcenter/vm")).
 				WithCondition(builder.HasMethod("GET")).
 				WithCondition(builder.HasHeader("Vmware-Api-Session-Id", AUTHTOKEN)).
-				ReturnBody(`[{"VM": "1", "Name": "test1"}, {"VM": "2", "Name": "test2"}]`).
+				ReturnBody(`[{"vm": "1", "name": "test1", "power_state": "POWERED_OFF"}, {"vm": "2", "name": "test2", "power_state": "POWERED_ON"}]`).
 				ReturnHeader("Content-Type", "application/json").
 				Build(),
 		)
@@ -110,8 +110,10 @@ func TestVMSEndpoint_GetVMS(t *testing.T) {
 	assert.Equal(t, len(r.VMS.VMS), 2)
 	assert.Equal(t, r.VMS.VMS[0].VM, "1")
 	assert.Equal(t, r.VMS.VMS[0].Name, "test1")
+	assert.Equal(t, r.VMS.VMS[0].PowerState, "POWERED_OFF")
 	assert.Equal(t, r.VMS.VMS[1].VM, "2")
 	assert.Equal(t, r.VMS.VMS[1].Name, "test2")
+	assert.Equal(t, r.VMS.VMS[1].PowerState, "POWERED_ON")
 }
 
 // TestVMSEndpoint_GetVMTags checks the /vms/tags endpoint

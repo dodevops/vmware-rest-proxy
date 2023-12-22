@@ -8,8 +8,9 @@ import (
 
 // VMResponse is the value in response from the VM endpoint
 type VMResponse struct {
-	VM   string `json:"vm"`
-	Name string `json:"name"`
+	VM         string `json:"vm"`
+	Name       string `json:"name"`
+	PowerState string `json:"power_state"`
 }
 
 // GetVMs returns all VMs from the VM endpoint
