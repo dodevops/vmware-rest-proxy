@@ -19,6 +19,7 @@ type VSphereProxyApi interface {
 	// GetFQDN uses the VMware guest tools to get the fqdn of a VM (if possible)
 	GetFQDN(username string, password string, VMID string) (string, error)
 
+	// GetHosts retrieves a list of ESXi hosts from the vCenter
 	GetHosts(username string, password string) ([]Host, error)
 }
 
