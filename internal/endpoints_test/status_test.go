@@ -7,12 +7,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"vmware-rest-proxy/internal/endpoints"
 )
 
 // TestStatusEndpoint tests the status endpoint
 func TestStatusEndpoint(t *testing.T) {
 	r := gin.Default()
-	s := StatusEndpoint{}
+	s := endpoints.StatusEndpoint{}
 	s.Register(r)
 	req, _ := http.NewRequest("GET", "/status", nil)
 	w := httptest.NewRecorder()
