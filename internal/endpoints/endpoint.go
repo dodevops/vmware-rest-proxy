@@ -13,7 +13,7 @@ import (
 // The Endpoint interface is used to have a common API for all available endpoints
 type Endpoint interface {
 	// Register needs to be available to register the endpoint with the engine
-	Register(engine *gin.Engine, config internal.Config)
+	Register(engine *gin.Engine)
 }
 
 // RequestData holds username and password from a request
