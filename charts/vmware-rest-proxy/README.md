@@ -1,6 +1,6 @@
 # vmware-rest-proxy
 
-[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/vmware-rest-proxy)](https://artifacthub.io/packages/search?repo=vmware-rest-proxy) ![Version: 0.1.3](https://img.shields.io/badge/Version-0.1.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.16.0](https://img.shields.io/badge/AppVersion-1.16.0-informational?style=flat-square)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/vmware-rest-proxy)](https://artifacthub.io/packages/search?repo=vmware-rest-proxy) ![Version: 0.1.9](https://img.shields.io/badge/Version-0.1.9-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.6](https://img.shields.io/badge/AppVersion-0.1.6-informational?style=flat-square)
 
 ## Introduction
 
@@ -37,6 +37,7 @@ Set config.baseUrl to the URL of your vCenter server. See other `config.`-parame
 | autoscaling.targetCPUUtilizationPercentage | int | `80` |  |
 | config.baseUrl | string | `""` | base URL of the vCenter server |
 | config.logLevel | string | `"INFO"` | Maximum log level to use (see (https://pkg.go.dev/github.com/sirupsen/logrus#readme-level-logging)) [INFO] |
+| config.proxyUrl | string | `""` | Connect to the vCenter using this proxy |
 | config.tlsSkipVerify | string | `"false"` | If set, will disable TLS verification for the API client |
 | fullnameOverride | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
