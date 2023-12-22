@@ -25,7 +25,23 @@ func (V *VMSEndpoint) Register(engine *gin.Engine) {
 	engine.GET("/vms/:vm/info", V.getVMInfo)
 }
 
-// getVMS exposes all VMS of the vCenter at /VMS
+type VMSResult struct {
+	Count int      `json:"count"`
+	VMS   []api.VM `json:"vms"`
+}
+type VMS struct {
+	VMS VMSResult `json:"vms"`
+}
+
+// @Summary Retrieve a list of all vms
+// @Description Fetches a list of vms from the vCenter
+// @Tags vm
+// @Produce json
+// @Security BasicAuth
+// @Success 200 {object} VMS
+// @Failure 401 "Authorization is required"
+// @Failure 400 "Invalid request"
+// @Router /vms [get]
 func (V *VMSEndpoint) getVMS(context *gin.Context) {
 	if r, ok := HandleRequest(context); ok {
 		if vms, err := V.API.GetVMs(r.Username, r.Password); err != nil {
@@ -43,7 +59,25 @@ func (V *VMSEndpoint) getVMS(context *gin.Context) {
 	}
 }
 
-// getVMTags exposes a list of tags associated with a vm at /VMS/:vm/tags
+type TagsResult struct {
+	Count int         `json:"count"`
+	Tags  []api.VMTag `json:"tags"`
+}
+
+type Tags struct {
+	Tags TagsResult `json:"tags"`
+}
+
+// @Summary Retrieve tags
+// @Description Retrieve tags  and their categories for a vm
+// @Param id path string true "ID of VM"
+// @Tags vm
+// @Produce json
+// @Security BasicAuth
+// @Success 200 {object} Tags
+// @Failure 401 "Authorization is required"
+// @Failure 400 "Invalid request"
+// @Router /vms/{id}/tags [get]
 func (V *VMSEndpoint) getVMTags(context *gin.Context) {
 	if r, ok := HandleRequest(context); ok {
 		var vm VMBinding
@@ -68,6 +102,20 @@ func (V *VMSEndpoint) getVMTags(context *gin.Context) {
 	}
 }
 
+type FQDN struct {
+	FQDN string `json:"fqdn"`
+}
+
+// @Summary Get fqdn of VM
+// @Description Try to find out the fqdn of the given VM using the guest tools
+// @Param id path string true "ID of VM"
+// @Tags vm
+// @Produce json
+// @Security BasicAuth
+// @Success 200 {object} FQDN
+// @Failure 401 "Authorization is required"
+// @Failure 400 "Invalid request"
+// @Router /vms/{id}/fqdn [get]
 func (V *VMSEndpoint) getFQDN(context *gin.Context) {
 	if r, ok := HandleRequest(context); ok {
 		var vm VMBinding
@@ -89,6 +137,16 @@ func (V *VMSEndpoint) getFQDN(context *gin.Context) {
 	}
 }
 
+// @Summary Get informational data about a VM
+// @Description Find out some information about a VM and return them
+// @Param id path string true "ID of VM"
+// @Tags vm
+// @Produce json
+// @Security BasicAuth
+// @Success 200 {object} api.VMInfo
+// @Failure 401 "Authorization is required"
+// @Failure 400 "Invalid request"
+// @Router /vms/{id}/info [get]
 func (V *VMSEndpoint) getVMInfo(context *gin.Context) {
 	if r, ok := HandleRequest(context); ok {
 		var vm VMBinding

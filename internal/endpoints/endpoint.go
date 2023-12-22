@@ -24,10 +24,8 @@ type RequestData struct {
 	Password string
 }
 
-/*
-HandleRequest manages incoming requests and extracts authorization data and optionally fails them if no authorization
-is present.
-*/
+// HandleRequest manages incoming requests and extracts authorization data and optionally fails them if no authorization
+// is present.
 func HandleRequest(context *gin.Context) (RequestData, bool) {
 	if u, p, err := getAuthData(context.GetHeader("Authorization")); err != nil {
 		var missingAuthenticationHeaderError internal.MissingAuthorizationHeaderError
@@ -36,7 +34,7 @@ func HandleRequest(context *gin.Context) (RequestData, bool) {
 				"error": "Missing authentication header",
 			})
 		} else {
-			context.AbortWithStatusJSON(403, gin.H{
+			context.AbortWithStatusJSON(400, gin.H{
 				"error": fmt.Sprintf("Error getting Authorization header: %s", err),
 			})
 		}

@@ -1,0 +1,277 @@
+definitions:
+  api.Datastore:
+    properties:
+      capacity:
+        type: integer
+      datastore:
+        type: string
+      free_space:
+        type: integer
+      name:
+        type: string
+      type:
+        type: string
+    type: object
+  api.Host:
+    properties:
+      connection_state:
+        type: string
+      host:
+        type: string
+      name:
+        type: string
+      power_state:
+        type: string
+    type: object
+  api.VM:
+    properties:
+      name:
+        type: string
+      power_state:
+        type: string
+      vm:
+        type: string
+    type: object
+  api.VMInfo:
+    properties:
+      cpu_cores:
+        type: integer
+      name:
+        type: string
+      provisioned_ram:
+        type: integer
+      provisioned_storage:
+        type: integer
+      used_storage:
+        type: integer
+    type: object
+  api.VMTag:
+    properties:
+      category:
+        description: Category holds the tag category
+        type: string
+      value:
+        description: Value holds the value of the tag
+        type: string
+    type: object
+  endpoints.Datastores:
+    properties:
+      datastores:
+        $ref: '#/definitions/endpoints.DatastoresResult'
+    type: object
+  endpoints.DatastoresResult:
+    properties:
+      count:
+        type: integer
+      datastores:
+        items:
+          $ref: '#/definitions/api.Datastore'
+        type: array
+    type: object
+  endpoints.FQDN:
+    properties:
+      fqdn:
+        type: string
+    type: object
+  endpoints.Hosts:
+    properties:
+      hosts:
+        $ref: '#/definitions/endpoints.HostsResult'
+    type: object
+  endpoints.HostsResult:
+    properties:
+      count:
+        type: integer
+      hosts:
+        items:
+          $ref: '#/definitions/api.Host'
+        type: array
+    type: object
+  endpoints.Status:
+    properties:
+      status:
+        type: string
+    type: object
+  endpoints.Tags:
+    properties:
+      tags:
+        $ref: '#/definitions/endpoints.TagsResult'
+    type: object
+  endpoints.TagsResult:
+    properties:
+      count:
+        type: integer
+      tags:
+        items:
+          $ref: '#/definitions/api.VMTag'
+        type: array
+    type: object
+  endpoints.VMS:
+    properties:
+      vms:
+        $ref: '#/definitions/endpoints.VMSResult'
+    type: object
+  endpoints.VMSResult:
+    properties:
+      count:
+        type: integer
+      vms:
+        items:
+          $ref: '#/definitions/api.VM'
+        type: array
+    type: object
+info:
+  contact:
+    email: info@dodevops.io
+    name: DO!DevOps
+    url: http://dodevops.io
+  title: vmware-rest-proxy
+  version: 0.1.0
+paths:
+  /datastores:
+    get:
+      description: Fetches a list of registered datastores in the vCenter
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/endpoints.Datastores'
+        "400":
+          description: Invalid request
+        "401":
+          description: Authorization is required
+      security:
+      - BasicAuth: []
+      summary: Retrieve a list of datastores
+      tags:
+      - datastore
+  /hosts:
+    get:
+      description: Fetches a list of registered ESXi hosts in the vCenter
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/endpoints.Hosts'
+        "400":
+          description: Invalid request
+        "401":
+          description: Authorization is required
+      security:
+      - BasicAuth: []
+      summary: Retrieve a list of ESXi hosts
+      tags:
+      - host
+  /status:
+    get:
+      description: Just responses with a 200 to signal that the service is running
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/endpoints.Status'
+      summary: Checks whether the service is running
+  /vms:
+    get:
+      description: Fetches a list of vms from the vCenter
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/endpoints.VMS'
+        "400":
+          description: Invalid request
+        "401":
+          description: Authorization is required
+      security:
+      - BasicAuth: []
+      summary: Retrieve a list of all vms
+      tags:
+      - vm
+  /vms/{id}/fqdn:
+    get:
+      description: Try to find out the fqdn of the given VM using the guest tools
+      parameters:
+      - description: ID of VM
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/endpoints.FQDN'
+        "400":
+          description: Invalid request
+        "401":
+          description: Authorization is required
+      security:
+      - BasicAuth: []
+      summary: Get fqdn of VM
+      tags:
+      - vm
+  /vms/{id}/info:
+    get:
+      description: Find out some information about a VM and return them
+      parameters:
+      - description: ID of VM
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.VMInfo'
+        "400":
+          description: Invalid request
+        "401":
+          description: Authorization is required
+      security:
+      - BasicAuth: []
+      summary: Get informational data about a VM
+      tags:
+      - vm
+  /vms/{id}/tags:
+    get:
+      description: Retrieve tags  and their categories for a vm
+      parameters:
+      - description: ID of VM
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/endpoints.Tags'
+        "400":
+          description: Invalid request
+        "401":
+          description: Authorization is required
+      security:
+      - BasicAuth: []
+      summary: Retrieve tags
+      tags:
+      - vm
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"
