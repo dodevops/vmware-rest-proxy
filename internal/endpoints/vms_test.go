@@ -3,6 +3,8 @@ package endpoints
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dodevops/golang-handlerinspector/pkg/builder"
+	"github.com/dodevops/golang-handlerinspector/pkg/inspector"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/assert/v2"
 	"github.com/go-resty/resty/v2"
@@ -10,15 +12,14 @@ import (
 	"net/http/httptest"
 	"testing"
 	"vmware-rest-proxy/internal/api"
-	"vmware-rest-proxy/pkg/handlerinspector"
 )
 
 // AUTHTOKEN holds a test token that should be issued and used in all tests
 const AUTHTOKEN = "testtoken"
 
-// sessionRule holds a handlerinspector Rule for the session api
-var sessionRule = handlerinspector.NewRule("session").
-	WithCondition(handlerinspector.HasPath("/api/session")).
+// sessionRule holds a builder Rule for the session api
+var sessionRule = builder.NewRule("session").
+	WithCondition(builder.HasPath("/api/session")).
 	ReturnBodyFromFunction(func(r *http.Request) string {
 		if r.Method == "POST" {
 			return fmt.Sprintf(`"%s"`, AUTHTOKEN)
@@ -52,13 +53,13 @@ func testRequests(handler http.Handler, requests []*http.Request) *httptest.Resp
 
 // TestVMSEndpoint_GetSession checks if the session endpoint is called
 func TestVMSEndpoint_GetSession(t *testing.T) {
-	b := handlerinspector.NewBuilder().
+	b := builder.NewBuilder().
 		WithRule(sessionRule).
 		WithRule(
-			handlerinspector.NewRule("vms").
-				WithCondition(handlerinspector.HasPath("/api/vcenter/vm")).
-				WithCondition(handlerinspector.HasMethod("GET")).
-				WithCondition(handlerinspector.HasHeader("Vmware-Api-Session-Id", AUTHTOKEN)).
+			builder.NewRule("vms").
+				WithCondition(builder.HasPath("/api/vcenter/vm")).
+				WithCondition(builder.HasMethod("GET")).
+				WithCondition(builder.HasHeader("Vmware-Api-Session-Id", AUTHTOKEN)).
 				ReturnBody("[]").
 				ReturnHeader("Content-Type", "application/json").
 				Build(),
@@ -68,7 +69,7 @@ func TestVMSEndpoint_GetSession(t *testing.T) {
 	req.SetBasicAuth("test", "test")
 	w := testRequests(b.Build(), []*http.Request{req})
 
-	i := handlerinspector.NewInspector(b)
+	i := inspector.NewInspector(b)
 	assert.Equal(t, i.Failed(), false)
 	assert.Equal(t, i.AllWereCalled(), true)
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -76,13 +77,13 @@ func TestVMSEndpoint_GetSession(t *testing.T) {
 
 // TestVMSEndpoint_GetVMS checks the vms endpoint
 func TestVMSEndpoint_GetVMS(t *testing.T) {
-	b := handlerinspector.NewBuilder().
+	b := builder.NewBuilder().
 		WithRule(sessionRule).
 		WithRule(
-			handlerinspector.NewRule("vms").
-				WithCondition(handlerinspector.HasPath("/api/vcenter/vm")).
-				WithCondition(handlerinspector.HasMethod("GET")).
-				WithCondition(handlerinspector.HasHeader("Vmware-Api-Session-Id", AUTHTOKEN)).
+			builder.NewRule("vms").
+				WithCondition(builder.HasPath("/api/vcenter/vm")).
+				WithCondition(builder.HasMethod("GET")).
+				WithCondition(builder.HasHeader("Vmware-Api-Session-Id", AUTHTOKEN)).
 				ReturnBody(`[{"VM": "1", "Name": "test1"}, {"VM": "2", "Name": "test2"}]`).
 				ReturnHeader("Content-Type", "application/json").
 				Build(),
@@ -101,7 +102,7 @@ func TestVMSEndpoint_GetVMS(t *testing.T) {
 	err := json.NewDecoder(w.Body).Decode(&r)
 	assert.Equal(t, err, nil)
 
-	i := handlerinspector.NewInspector(b)
+	i := inspector.NewInspector(b)
 	assert.Equal(t, i.Failed(), false)
 	assert.Equal(t, i.AllWereCalled(), true)
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -115,51 +116,51 @@ func TestVMSEndpoint_GetVMS(t *testing.T) {
 
 // TestVMSEndpoint_GetVMTags checks the /vms/tags endpoint
 func TestVMSEndpoint_GetVMTags(t *testing.T) {
-	b := handlerinspector.NewBuilder().
+	b := builder.NewBuilder().
 		WithRule(sessionRule).
 		WithRule(
-			handlerinspector.NewRule("list-associated-tags").
-				WithCondition(handlerinspector.HasPath("/api/cis/tagging/tag-association")).
-				WithCondition(handlerinspector.HasMethod("POST")).
-				WithCondition(handlerinspector.HasHeader("Vmware-Api-Session-Id", AUTHTOKEN)).
-				WithCondition(handlerinspector.HasQueryParam("action", "list-attached-tags")).
-				WithCondition(handlerinspector.HasBody(`{"object_id":{"id":"1","type":"VirtualMachine"}}`)).
+			builder.NewRule("list-associated-tags").
+				WithCondition(builder.HasPath("/api/cis/tagging/tag-association")).
+				WithCondition(builder.HasMethod("POST")).
+				WithCondition(builder.HasHeader("Vmware-Api-Session-Id", AUTHTOKEN)).
+				WithCondition(builder.HasQueryParam("action", "list-attached-tags")).
+				WithCondition(builder.HasBody(`{"object_id":{"id":"1","type":"VirtualMachine"}}`)).
 				ReturnBody(`["1", "2"]`).
 				ReturnHeader("Content-Type", "application/json").
 				Build(),
 		).
 		WithRule(
-			handlerinspector.NewRule("tag-data-1").
-				WithCondition(handlerinspector.HasPath("/api/cis/tagging/tag/1")).
-				WithCondition(handlerinspector.HasMethod("GET")).
-				WithCondition(handlerinspector.HasHeader("Vmware-Api-Session-Id", AUTHTOKEN)).
+			builder.NewRule("tag-data-1").
+				WithCondition(builder.HasPath("/api/cis/tagging/tag/1")).
+				WithCondition(builder.HasMethod("GET")).
+				WithCondition(builder.HasHeader("Vmware-Api-Session-Id", AUTHTOKEN)).
 				ReturnBody(`{"category_id": "1", "name": "testtag1"}`).
 				ReturnHeader("Content-Type", "application/json").
 				Build(),
 		).
 		WithRule(
-			handlerinspector.NewRule("tag-data-2").
-				WithCondition(handlerinspector.HasPath("/api/cis/tagging/tag/2")).
-				WithCondition(handlerinspector.HasMethod("GET")).
-				WithCondition(handlerinspector.HasHeader("Vmware-Api-Session-Id", AUTHTOKEN)).
+			builder.NewRule("tag-data-2").
+				WithCondition(builder.HasPath("/api/cis/tagging/tag/2")).
+				WithCondition(builder.HasMethod("GET")).
+				WithCondition(builder.HasHeader("Vmware-Api-Session-Id", AUTHTOKEN)).
 				ReturnBody(`{"category_id": "2", "name": "testtag2"}`).
 				ReturnHeader("Content-Type", "application/json").
 				Build(),
 		).
 		WithRule(
-			handlerinspector.NewRule("tag-category-1").
-				WithCondition(handlerinspector.HasPath("/api/cis/tagging/category/1")).
-				WithCondition(handlerinspector.HasMethod("GET")).
-				WithCondition(handlerinspector.HasHeader("Vmware-Api-Session-Id", AUTHTOKEN)).
+			builder.NewRule("tag-category-1").
+				WithCondition(builder.HasPath("/api/cis/tagging/category/1")).
+				WithCondition(builder.HasMethod("GET")).
+				WithCondition(builder.HasHeader("Vmware-Api-Session-Id", AUTHTOKEN)).
 				ReturnBody(`{"name": "testcategory1"}`).
 				ReturnHeader("Content-Type", "application/json").
 				Build(),
 		).
 		WithRule(
-			handlerinspector.NewRule("tag-category-2").
-				WithCondition(handlerinspector.HasPath("/api/cis/tagging/category/2")).
-				WithCondition(handlerinspector.HasMethod("GET")).
-				WithCondition(handlerinspector.HasHeader("Vmware-Api-Session-Id", AUTHTOKEN)).
+			builder.NewRule("tag-category-2").
+				WithCondition(builder.HasPath("/api/cis/tagging/category/2")).
+				WithCondition(builder.HasMethod("GET")).
+				WithCondition(builder.HasHeader("Vmware-Api-Session-Id", AUTHTOKEN)).
 				ReturnBody(`{"name": "testcategory2"}`).
 				ReturnHeader("Content-Type", "application/json").
 				Build(),
@@ -178,7 +179,7 @@ func TestVMSEndpoint_GetVMTags(t *testing.T) {
 	err := json.NewDecoder(w.Body).Decode(&r)
 	assert.Equal(t, err, nil)
 
-	i := handlerinspector.NewInspector(b)
+	i := inspector.NewInspector(b)
 	assert.Equal(t, i.Failed(), false)
 	assert.Equal(t, i.AllWereCalled(), true)
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -192,13 +193,13 @@ func TestVMSEndpoint_GetVMTags(t *testing.T) {
 
 // TestVMSEndpoint_GetFQDN checks the vm/fqdn endpoint
 func TestVMSEndpoint_GetFQDN(t *testing.T) {
-	b := handlerinspector.NewBuilder().
+	b := builder.NewBuilder().
 		WithRule(sessionRule).
 		WithRule(
-			handlerinspector.NewRule("get-fqdm").
-				WithCondition(handlerinspector.HasPath("/api/vcenter/vm/1/guest/networking")).
-				WithCondition(handlerinspector.HasMethod("GET")).
-				WithCondition(handlerinspector.HasHeader("Vmware-Api-Session-Id", AUTHTOKEN)).
+			builder.NewRule("get-fqdm").
+				WithCondition(builder.HasPath("/api/vcenter/vm/1/guest/networking")).
+				WithCondition(builder.HasMethod("GET")).
+				WithCondition(builder.HasHeader("Vmware-Api-Session-Id", AUTHTOKEN)).
 				ReturnBody(`{"dns_values":{"domain_name":"example.com","host_name":"test"}}`).
 				ReturnHeader("Content-Type", "application/json").
 				Build(),
@@ -214,7 +215,7 @@ func TestVMSEndpoint_GetFQDN(t *testing.T) {
 	err := json.NewDecoder(w.Body).Decode(&r)
 	assert.Equal(t, err, nil)
 
-	i := handlerinspector.NewInspector(b)
+	i := inspector.NewInspector(b)
 	assert.Equal(t, i.Failed(), false)
 	assert.Equal(t, i.AllWereCalled(), true)
 	assert.Equal(t, http.StatusOK, w.Code)
