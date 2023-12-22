@@ -22,3 +22,12 @@ type Host struct {
 	PowerState      string `json:"power_state"`
 	ConnectionState string `json:"connection_state"`
 }
+
+// Datastore represents a host in the vCenter as described in https://developer.vmware.com/apis/vsphere-automation/v8.0U1/vcenter/data-structures/Datastore/Summary/
+type Datastore struct {
+	Datastore string `json:"datastore"`
+	Name      string `json:"name"`
+	Type      string `json:"type"`
+	Capacity  int    `json:"capacity"`
+	FreeSpace int    `json:"free_space"`
+}

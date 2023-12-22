@@ -21,6 +21,9 @@ type VSphereProxyApi interface {
 
 	// GetHosts retrieves a list of ESXi hosts from the vCenter
 	GetHosts(username string, password string) ([]Host, error)
+
+	// GetDatastores retrieves a list of datastores from the vCenter
+	GetDatastores(username string, password string) ([]Datastore, error)
 }
 
 // DefaultVSphereProxyApi is the default API implementation
