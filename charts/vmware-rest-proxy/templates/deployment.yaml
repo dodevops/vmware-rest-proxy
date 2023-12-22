@@ -54,6 +54,10 @@ spec:
               value: "{{ .Values.config.tlsSkipVerify }}"
             - name: VCENTER_PROXY_URL
               value: "{{ .Values.config.proxyUrl }}"
+            {{- if ne .Values.config.externalBaseUrl "" }}
+            - name: EXTERNAL_BASE_URL
+              value: {{ .Values.config.externalBaseUrl | quote }}
+            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

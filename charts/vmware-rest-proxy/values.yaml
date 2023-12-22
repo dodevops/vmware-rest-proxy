@@ -90,3 +90,5 @@ config:
   tlsSkipVerify: "false"
   # config.proxyUrl -- Connect to the vCenter using this proxy
   proxyUrl: ""
+  # config.externalBaseUrl -- External URL this service is reachable on
+  externalBaseUrl: ""
