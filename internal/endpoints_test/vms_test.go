@@ -7,6 +7,7 @@ import (
 	"github.com/go-playground/assert/v2"
 	"net/http"
 	"testing"
+	"time"
 	"vmware-rest-proxy/internal/api"
 	"vmware-rest-proxy/test"
 )
@@ -32,6 +33,54 @@ func TestVMSEndpoint_GetSession(t *testing.T) {
 	i := inspector.NewInspector(b)
 	assert.Equal(t, i.Failed(), false)
 	assert.Equal(t, i.AllWereCalled(), true)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	t.Log("Running session check again to see that we're using a cached session")
+
+	b = builder.NewBuilder().
+		WithRule(test.SessionRule).
+		WithRule(
+			builder.NewRule("vms").
+				WithCondition(builder.HasPath("/api/vcenter/vm")).
+				WithCondition(builder.HasMethod("GET")).
+				WithCondition(builder.HasHeader("Vmware-Api-Session-Id", test.AUTHTOKEN)).
+				ReturnBody("[]").
+				ReturnHeader("Content-Type", "application/json").
+				Build(),
+		)
+
+	req, _ = http.NewRequest("GET", "/vms", nil)
+	req.SetBasicAuth("test", "test")
+	w = test.TestRequests(b.Build(), []*http.Request{req})
+
+	i = inspector.NewInspector(b)
+	assert.Equal(t, i.Failed(), false)
+	assert.Equal(t, i.Called("session"), 0)
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	t.Logf("Waiting %f seconds to generate a new session", api.SessionLifetime.Seconds())
+
+	time.Sleep(api.SessionLifetime + 5*time.Second)
+
+	b = builder.NewBuilder().
+		WithRule(test.SessionRule).
+		WithRule(
+			builder.NewRule("vms").
+				WithCondition(builder.HasPath("/api/vcenter/vm")).
+				WithCondition(builder.HasMethod("GET")).
+				WithCondition(builder.HasHeader("Vmware-Api-Session-Id", test.AUTHTOKEN)).
+				ReturnBody("[]").
+				ReturnHeader("Content-Type", "application/json").
+				Build(),
+		)
+
+	req, _ = http.NewRequest("GET", "/vms", nil)
+	req.SetBasicAuth("test", "test")
+	w = test.TestRequests(b.Build(), []*http.Request{req})
+
+	i = inspector.NewInspector(b)
+	assert.Equal(t, i.Failed(), false)
+	assert.Equal(t, i.Called("session"), 1)
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -64,7 +113,7 @@ func TestVMSEndpoint_GetVMS(t *testing.T) {
 
 	i := inspector.NewInspector(b)
 	assert.Equal(t, i.Failed(), false)
-	assert.Equal(t, i.AllWereCalled(), true)
+	assert.Equal(t, i.Called("vms"), 1)
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, r.VMS.Count, 2)
 	assert.Equal(t, len(r.VMS.VMS), 2)
@@ -143,7 +192,11 @@ func TestVMSEndpoint_GetVMTags(t *testing.T) {
 
 	i := inspector.NewInspector(b)
 	assert.Equal(t, i.Failed(), false)
-	assert.Equal(t, i.AllWereCalled(), true)
+	assert.Equal(t, i.Called("list-associated-tags"), 1)
+	assert.Equal(t, i.Called("tag-data-1"), 1)
+	assert.Equal(t, i.Called("tag-data-2"), 1)
+	assert.Equal(t, i.Called("tag-category-1"), 1)
+	assert.Equal(t, i.Called("tag-category-2"), 1)
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, r.Tags.Count, 2)
 	assert.Equal(t, len(r.Tags.Tags), 2)
@@ -179,7 +232,7 @@ func TestVMSEndpoint_GetFQDN(t *testing.T) {
 
 	i := inspector.NewInspector(b)
 	assert.Equal(t, i.Failed(), false)
-	assert.Equal(t, i.AllWereCalled(), true)
+	assert.Equal(t, i.Called("get-fqdn"), 1)
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, r.FQDN, "test.example.com")
 }
@@ -197,7 +250,7 @@ func TestVMSEndpoint_GetVMInfo(t *testing.T) {
 				Build(),
 		).
 		WithRule(
-			builder.NewRule("get-vm").
+			builder.NewRule("get-vm-local-filesystem").
 				WithCondition(builder.HasPath("/api/vcenter/vm/1/guest/local-filesystem")).
 				WithCondition(builder.HasMethod("GET")).
 				WithCondition(builder.HasHeader("Vmware-Api-Session-Id", test.AUTHTOKEN)).
@@ -216,7 +269,8 @@ func TestVMSEndpoint_GetVMInfo(t *testing.T) {
 
 	i := inspector.NewInspector(b)
 	assert.Equal(t, i.Failed(), false)
-	assert.Equal(t, i.AllWereCalled(), true)
+	assert.Equal(t, i.Called("get-vm"), 1)
+	assert.Equal(t, i.Called("get-vm-local-filesystem"), 1)
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, r.Name, "test")
 	assert.Equal(t, r.CPUCores, 4)

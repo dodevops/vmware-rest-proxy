@@ -40,7 +40,7 @@ func TestHostsEndpoint_GetHosts(t *testing.T) {
 
 	i := inspector.NewInspector(b)
 	assert.Equal(t, i.Failed(), false)
-	assert.Equal(t, i.AllWereCalled(), true)
+	assert.Equal(t, i.Called("hosts"), 1)
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, r.Hosts.Count, 2)
 	assert.Equal(t, len(r.Hosts.Hosts), 2)
