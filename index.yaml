@@ -6,6 +6,24 @@ entries:
         - name: support
           url: https://github.com/dodevops/vmware-rest-proxy/issues
     apiVersion: v2
+    appVersion: 0.1.7
+    created: "2024-02-23T08:12:04.873230316Z"
+    description: A Helm chart for the vmware-rest-proxy
+    digest: 3bd6f029eae3e89dd0577657ef711765074d9af501676381a15e339cbe28ac59
+    home: https://github.com/dodevops/vmware-rest-proxy
+    name: vmware-rest-proxy
+    sources:
+    - https://github.com/dodevops/vmware-rest-proxy/tree/main/charts/vmware-rest-proxy
+    - https://github.com/dodevops/vmware-rest-proxy/blob/main/Dockerfile
+    type: application
+    urls:
+    - https://github.com/dodevops/vmware-rest-proxy/releases/download/vmware-rest-proxy-0.1.11/vmware-rest-proxy-0.1.11.tgz
+    version: 0.1.11
+  - annotations:
+      artifacthub.io/links: |-
+        - name: support
+          url: https://github.com/dodevops/vmware-rest-proxy/issues
+    apiVersion: v2
     appVersion: 0.1.6
     created: "2023-12-27T07:11:45.112763849Z"
     description: A Helm chart for the vmware-rest-proxy
@@ -175,4 +193,4 @@ entries:
     urls:
     - https://github.com/dodevops/vmware-rest-proxy/releases/download/vmware-rest-proxy-0.1.0/vmware-rest-proxy-0.1.0.tgz
     version: 0.1.0
-generated: "2023-12-27T07:11:45.112808923Z"
+generated: "2024-02-23T08:12:04.873277174Z"
