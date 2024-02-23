@@ -3,35 +3,45 @@ package api
 import (
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"time"
 )
 
-var sessionCache map[string]string
+// SessionLifetime sets the maximum lifetime of a session as the vCenter API for handling sessions isn't quite
+// up for that
+const SessionLifetime = 5 * time.Minute
+
+type session struct {
+	token   string
+	created time.Time
+}
+
+var sessionCache map[string]session
 
 // GetSession returns the vmware session id to be used by other requests
 func (d DefaultVSphereProxyApi) GetSession(username string, password string) (string, error) {
 	if sessionCache == nil {
-		sessionCache = make(map[string]string)
+		sessionCache = make(map[string]session)
 	}
 	if s, ok := sessionCache[username]; ok {
 		logrus.Debugf("Checking cached session for user %s", username)
-		var getSessionResponse struct {
-			User string `json:"user"`
+
+		if time.Now().Sub(sessionCache[username].created) <= SessionLifetime {
+			return sessionCache[username].token, nil
 		}
+
+		logrus.Debugf("Session of user %s has been expired. Recreating it", username)
+
+		delete(sessionCache, username)
+
 		if r, err := d.Resty.
 			R().
-			SetHeader("vmware-api-session-id", s).
+			SetHeader("vmware-api-session-id", s.token).
 			SetBasicAuth(username, password).
-			SetResult(&getSessionResponse).
-			Get("/api/session"); err != nil {
+			Delete("/api/session"); err != nil {
 			return "", err
 		} else {
-			if r.StatusCode() == 401 {
-				delete(sessionCache, username)
-			} else if r.IsError() {
-				return "", fmt.Errorf("error checking session for user %s (%s): %s", username, r.Status(), r.Body())
-			} else {
-				logrus.Debugf("Cached session still valid for user %s", username)
-				return s, nil
+			if r.IsError() {
+				return "", fmt.Errorf("error deleting session for user %s (%s): %s", username, r.Status(), r.Body())
 			}
 		}
 	}
@@ -47,7 +57,10 @@ func (d DefaultVSphereProxyApi) GetSession(username string, password string) (st
 		if r.IsError() {
 			return "", fmt.Errorf("error getting session (%s): %s", r.Status(), r.Body())
 		}
-		sessionCache[username] = sessionToken
+		sessionCache[username] = session{
+			token:   sessionToken,
+			created: time.Now(),
+		}
 		return sessionToken, nil
 	}
 }
